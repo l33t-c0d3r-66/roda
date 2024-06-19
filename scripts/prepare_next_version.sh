@@ -15,7 +15,7 @@ function syntax {
 }
 
 if [[ -z "$NEXT_VERSION" ]]; then
-  syntax $0
+  syntax "$0"
   exit 1
 fi
 
@@ -27,11 +27,12 @@ cat << EOF
 EOF
 
 # Updating RODA Maven modules with next version SNAPSHOT
-mvn versions:set versions:commit -DnewVersion=$NEXT_VERSION-SNAPSHOT
+mvn versions:set versions:commit -DnewVersion="$NEXT_VERSION-SNAPSHOT"
+mvn -f dev/codeserver versions:set-property versions:commit -Dproperty=roda.version -DnewVersion="$NEXT_VERSION-SNAPSHOT"
 
 # Commit Maven version update
 git add -u
-git commit -m "Setting version $NEXT_VERSION-SNAPSHOT"
+git commit -S -m "Setting version $NEXT_VERSION-SNAPSHOT"
 
 # Push commits
 git push

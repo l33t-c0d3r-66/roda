@@ -512,7 +512,7 @@ public interface ClientMessages extends Messages {
 
   String viewRepresentationInfoPronom();
 
-  String viewTikaInformation();
+  String viewTechnicalInformation();
 
   String viewTechnicalMetadata();
 
@@ -2415,5 +2415,29 @@ public interface ClientMessages extends Messages {
   String editDescMetadataLockedTitle();
 
   String editDescMetadataLockedText();
+
+  String representationTypeTitle();
+
+  String representationTypeDescription();
+
+  String changeRepresentationStatusToPreservationTitle();
+
+  String changeRepresentationStatusToPreservationDescription();
+
+  String disseminationTitle();
+
+  String disseminationTitleDescription();
+
+  String disseminationDescriptionTitle();
+
+  String disseminationDescriptionDescription();
+
+  String disseminationTitleDefaultValue();
+
+  String disseminationDescriptionDefaultValue();
+
+  String conversionProfileTitle();
+
+  String conversionProfileDescription();
 
 }

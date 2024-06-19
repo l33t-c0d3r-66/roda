@@ -24,6 +24,10 @@ Additional support for internal plugins:
 TCPAddr localhost" | sudo tee /etc/clamav/clamd.conf
  ```
 
+### Sign Github commits
+
+Follow the official documentation page: <https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits>
+
 ## Debug WUI
 
 ```bash
@@ -49,6 +53,14 @@ mvn -f dev/codeserver gwt:codeserver -DrodaPath=$(pwd)
 
 Optional: Check Google Chrome "RemoteLiveReload" extension for automatic reloading with spring boot.
 
+## Build local docker image
+
+```bash
+cd docker
+
+./build.sh
+```
+
 ## Release new version
 
 Before releasing:
@@ -62,20 +74,19 @@ Example release 2.2.0 and prepare for next version 2.3.0.
 2. Wait for [GitHub action build](https://github.com/keeps/roda/actions/workflows/release.yml) to be finished and successful
 3. Review release and accept release:
     1. Review issues
-    2. Add docker run instructions
+    2. Update release notes
     3. Publish release
 4. Run `./scripts/update_changelog.sh 2.2.0`
 5. Run `./scripts/prepare_next_version.sh 2.3.0`
 
 Snippet for docker run instructions:
 
-````text
+```text
 ---
 
 To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
 
 ```
-````
 
 ## Redeploy on docker
 

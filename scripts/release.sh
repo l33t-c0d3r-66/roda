@@ -20,6 +20,10 @@ if [[ -z "$RELEASE_VERSION" ]]; then
   exit 1
 fi
 
+docker pull docker.labs.keep.pt/bu/digitalpreservation/dev/market-info-generator:1
+docker run -it -e GITLAB_PRIVATE_TOKEN=${GITLAB_PRIVATE_TOKEN} -v /tmp/market-info:/tmp/target docker.labs.keep.pt/bu/digitalpreservation/dev/market-info-generator:1 -o /tmp/target
+cp /tmp/market-info/marketInfo.jsonl roda-core/roda-core/src/main/resources/config/market/marketInfo.jsonl
+
 cat << EOF
 ################################
 # Release version
@@ -36,10 +40,10 @@ mvn versions:set versions:commit -DnewVersion=$RELEASE_VERSION
 
 # Commit Maven version update
 git add -u
-git commit -m "Setting version $RELEASE_VERSION"
+git commit -S -m "Setting version $RELEASE_VERSION"
 
 # Create tag
-git tag -a "$RELEASE_TAG" -m "Version $RELEASE_VERSION"
+git tag -s -a "$RELEASE_TAG" -m "Version $RELEASE_VERSION"
 
 # Push tag
 git push origin "$RELEASE_TAG"

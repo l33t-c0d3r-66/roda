@@ -36,6 +36,7 @@ import org.roda.core.data.exceptions.IsStillUpdatingException;
 import org.roda.core.data.exceptions.NotFoundException;
 import org.roda.core.data.exceptions.RODAException;
 import org.roda.core.data.exceptions.RequestNotValidException;
+import org.roda.core.data.exceptions.TechnicalMetadataNotFoundException;
 import org.roda.core.data.v2.common.ObjectPermissionResult;
 import org.roda.core.data.v2.common.Pair;
 import org.roda.core.data.v2.index.IndexResult;
@@ -79,7 +80,6 @@ import org.roda.core.data.v2.user.User;
 import org.roda.core.data.v2.validation.ValidationException;
 import org.roda.core.index.utils.IterableIndexResult;
 import org.roda.core.model.utils.UserUtility;
-import org.roda.core.plugins.base.ingest.PermissionUtils;
 import org.roda.core.storage.ContentPayload;
 import org.roda.core.storage.fs.FSPathContentPayload;
 import org.roda.core.storage.fs.FSUtils;
@@ -773,6 +773,34 @@ public class Browser extends RodaWuiController {
     }
   }
 
+  public static EntityResponse retrieveFilePreservationMetadata(User user, String aipId, String fileId,
+    String acceptFormat, String language)
+    throws AuthorizationDeniedException, GenericException, NotFoundException, RequestNotValidException, TechnicalMetadataNotFoundException {
+    final ControllerAssistant controllerAssistant = new ControllerAssistant() {};
+
+    // validate input
+    BrowserHelper.validateGetPreservationMetadataParams(acceptFormat);
+
+    // check user permissions
+    controllerAssistant.checkRoles(user);
+
+    LogEntryState state = LogEntryState.SUCCESS;
+
+    try {
+      IndexedAIP aip = BrowserHelper.retrieve(IndexedAIP.class, aipId, RodaConstants.AIP_PERMISSIONS_FIELDS_TO_RETURN);
+      controllerAssistant.checkObjectPermissions(user, aip);
+
+      // delegate
+      return BrowserHelper.retrieveFilePreservationMetadata(aipId, fileId, acceptFormat, language);
+    } catch (RODAException e) {
+      state = LogEntryState.FAILURE;
+      throw e;
+    } finally {
+      // register action
+      controllerAssistant.registerAction(user, aipId, state, RodaConstants.CONTROLLER_METADATA_ID_PARAM, fileId);
+    }
+  }
+
   public static EntityResponse retrieveAIPDescriptiveMetadataVersion(User user, String aipId, String metadataId,
     String versionId, String acceptFormat, String language)
     throws AuthorizationDeniedException, GenericException, NotFoundException, RequestNotValidException {
@@ -1365,11 +1393,8 @@ public class Browser extends RodaWuiController {
     try {
       Permissions permissions = new Permissions();
 
-      //calculate final permissions
-      Permissions finalPermissions = PermissionUtils.calculatePermissions(user, Optional.of(permissions));
-
       // delegate
-      return BrowserHelper.createAIP(user, null, type, finalPermissions);
+      return BrowserHelper.createAIP(user, null, type, permissions);
 
     } catch (RODAException e) {
       state = LogEntryState.FAILURE;
@@ -1416,11 +1441,8 @@ public class Browser extends RodaWuiController {
         throw new RequestNotValidException("Creating AIP that should be below another with a null parentId");
       }
 
-      //calculate final permissions
-      Permissions finalPermissions = PermissionUtils.calculatePermissions(user, Optional.of(permissions));
-
       // delegate
-      return BrowserHelper.createAIP(user, parentId, type, finalPermissions);
+      return BrowserHelper.createAIP(user, parentId, type, permissions);
     } catch (RODAException e) {
       state = LogEntryState.FAILURE;
       throw e;
@@ -3715,6 +3737,11 @@ public class Browser extends RodaWuiController {
       // register action
       controllerAssistant.registerAction(user, state);
     }
+  }
+
+  public static EntityResponse retrieveFilePreservationFile(User user, String aipId, String fileId,
+    String acceptFormat) {
+    return null;
   }
 
 }

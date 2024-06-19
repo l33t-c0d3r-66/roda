@@ -1,5 +1,158 @@
 # Changelog
 
+## v5.6.5 (07/06/2024)
+#### Bug fixes
+
+- Roda fails to resolve other metadata with folders #3219
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
+## v5.6.4 (06/06/2024)
+#### Bug fixes
+
+- Roda fails to reindex due to problem with other metadata files #3218
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
+## v5.6.3 (23/05/2024)
+#### Bug fixes
+
+- Revert webjars-locator functionality
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
+## v5.6.2 (22/05/2024)
+#### Bug fixes
+
+- Base roda overwrites the configuration regarding user permissions in roda-config.properties #3189
+
+#### Security
+- Dependency major upgrades to fix security vulnerabilities
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
+## v5.6.1 (03/05/2024)
+#### Bug fixes
+
+- Custom E-ARK SIP representation type not being set when ingesting a E-ARK SIP #3139
+
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
+## v5.6.0 (04/04/2024)
+#### New features 
+
+- Auto refresh after the session expires
+
+#### Enhancements 
+
+- Update representation information links
+
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
+## v5.5.3 (13/03/2024)
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
+## v5.5.2 (11/03/2024)
+#### Bug fixes
+- Fixed other metadata download #3117
+
+
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+
+---
+
+## v5.5.1 (08/03/2024)
+#### Bug fixes
+- Remove "opt-in" from roda-core.properties #3113
+- Fix ns2 namespace in premis.xml when creating technical metadata  #3114 
+
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+
+---
+
+## v5.5.0 (04/03/2024)
+#### New features
+-  Support for generic technical metadata creation and visualization #3097
+
+#### Bug fixes
+- Fixed unexpected behaviour when trying to create a new AIP #3110
+- Fixed AIP permissions calculation using ModelService #3105 
+
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
+## v5.4.0 (08/02/2024)
+#### New features
+-  Technological platforms major upgrade, which largely improves overall security, maintanability and performance #3055
+-  Adding support for the latest version of the [E-ARK SIP specification](https://dilcis.eu/specifications/sip) (version 2.1.0) #3046
+-  Support [trusting the your own plugins](https://github.com/keeps/roda/blob/master/documentation/Plugin_signing.md) #3059
+
+#### Enhancements
+-  Added help text to Agents register page that was missing #2831 
+-  Added close button to license popup #2975
+-  Improved documentation about default permissions #3045
+- Other small improvements #3063
+
+#### Bug fixes
+-  Fixed "Clear" button in search component that did not behave as expected #3062
+-  Fixed the Event Register menu entry that did not match the title of page #2832
+-  Fixed Date and time of last transfer resource refresh in RODA interface only updated when reloading the page #3038 
+-  Fixed default permissions issue when reading admin user permissions from configuration #3066 
+
+#### Security
+- Several dependency major upgrades to fix security vulnerabilities
+
+---
+
+To try out this version, check the [install instructions](https://github.com/keeps/roda/blob/master/deploys/standalone/README.md).
+---
+
 ## v5.3.1 (11/01/2024)
 #### Bug fixes:
 - Changed default permissions to old behaviour #3043
@@ -324,174 +477,4 @@ docker pull keeps/roda:v4.5.0
 Install for demonstration:
 ```
 docker pull keeps/roda:v3.7.1
-```
----
-
-## v4.4.0 (17/06/2022)
-### :warning: Breaking Changes
-Solr 7.7 reached EOL meaning that is no longer supported and will not receive any security patches. As such RODA from version 4.4 onward will use Solr 8 as index system. If you have any implementation with Solr 7 you need to upgrade the Solr to version 8 and then rebuild all indexes on RODA.
-
-#### New features:
-
-- Upgrade Solr version from 7.7 to Solr 8.11.1
-- Upgrade GWT version from 2.9.0 to 2.10.0
-
-Install for demonstration:
-```
-docker pull keeps/roda:v4.4.0
-```
----
-
-## v4.3.1 (17/06/2022)
-#### Bug Fixes:
-
-- Edit descriptive metadata from an AIP with a disposal schedule gives an error #2190 
-- Multiple plugin assumes last plugin state in final report #2067
-- Preservation event and incident risk counters on representation panel #2064
-
-Install for demonstration:
-```
-docker pull keeps/roda:v4.3.1
-```
-
-
----
-
-## v4.3.0 (26/04/2022)
-#### New features:
-
--  Akka events with Zookeeper seed registration [#2001](https://github.com/keeps/roda/issues/2001)
-
-#### Enhancements:
-
--  Add error message to ClientLogger for fatal method [#2002](https://github.com/keeps/roda/issues/2002)
-
-#### Bug Fixes:
-
--  Ambiguous representation PREMIS relatedObjectIdentifierValue [#1993](https://github.com/keeps/roda/issues/1993)
--  Classification scheme won't load because of unrecognized field "type" [#1986](https://github.com/keeps/roda/issues/1986)
--  Reject assessment is creating premis events on AIP, change this event for Repository level [#1984](https://github.com/keeps/roda/issues/1984)
-
-Install for demonstration:
-```
-docker pull keeps/roda:v4.3.0
-```
-
----
-
-## v3.7.0 (21/04/2022)
-
-#### New features:
-
--  Akka events with Zookeeper seed registration [#2001](https://github.com/keeps/roda/issues/2001)
-
-#### Enhancements:
-
--  Add error message to ClientLogger for fatal method [#2002](https://github.com/keeps/roda/issues/2002)
-
-Install for demonstration:
-```
-docker pull keeps/roda:v3.7.0
-```
-
----
-
-## v3.6.4 (11/03/2022)
-#### Bug Fixes:
-
--  Fix job orchestration displayed badges
-
-Install for demonstration:
-```
-docker pull keeps/roda:v3.6.4
-```
-
----
-
-## v3.6.3 (11/03/2022)
-
-#### Enhancements:
-
--  Remove trace logs from logback configuration [#1994](https://github.com/keeps/roda/issues/1994)
-
-#### Bug Fixes:
-
--  Generalized noneselect option when building search filter [#1995](https://github.com/keeps/roda/issues/1995)
-
-Install for demonstration:
-```
-docker pull keeps/roda:v3.6.3
-```
-
----
-
-## v3.6.2 (17/02/2022)
-### Bug fixes:
-
-- CAS Login issue when user with the same email already exists #1988
-
-Install for demonstration:
-```
-docker pull keeps/roda:v3.6.2
-```
----
-
-## v4.2.1 (15/02/2022)
-### Bug fixes:
-
-- CAS Login issue when user with the same email already exists #1988
-
-### Enhancements:
-
-- Add under appraisel status to transferred resources deletion #1989
-- Replace embed marked.js by webjar #1983
-
-Install for demonstration:
-```
-docker pull keeps/roda:v4.2.1
-```
-
----
-
-## v3.6.1 (26/01/2022)
-### Bug fixes:
-
-- Update Dockerfile base image
-
-Install for demonstration:
-```
-docker pull keeps/roda:v3.6.1
-```
-
----
-
-## v4.2.0 (17/01/2022)
-### New features:
-
-- Job orchestration #1981
-- Add prometheus metrics for HTTP notification system #1982
-
-### Bug fixes:
-
-- LinkingObjectIdentifierValue links to unknown URN (in preservation metadata PREMIS) #1946
-- Object PREMIS does not register contentLocation in storage element #1947
-- Fixity information computation to report SKIPPED #1970
-- Allow run mutiple plugins #1977
-
-Install for demonstration:
-```
-docker pull keeps/roda:v4.2.0
-```
-
----
-
-## v3.6.0 (17/01/2022)
-New features:
-
-- Job orchestration #1981
-- Add prometheus metrics for HTTP notification system #1982
-
-Install for demonstration:
-```
-docker pull keeps/roda:v3.6
 ```

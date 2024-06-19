@@ -12,12 +12,14 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import org.roda.core.RodaCoreFactory;
 import org.roda.core.common.Messages;
 import org.roda.core.common.RodaUtils;
 import org.roda.core.data.common.RodaConstants;
 import org.roda.core.data.exceptions.GenericException;
+import org.roda.core.data.exceptions.TechnicalMetadataNotFoundException;
 import org.roda.core.storage.Binary;
 
 import com.google.common.io.CharStreams;
@@ -48,6 +50,28 @@ public final class HTMLUtils {
     }
   }
 
+  public static String technicalMetadataToHtml(Binary binary, String metadataType, String metadataVersion,
+    final Locale locale) throws GenericException, TechnicalMetadataNotFoundException {
+    Map<String, String> translations = getTranslations(metadataType, metadataVersion, locale);
+
+    String lowerCaseMetadataTypeWithVersion = metadataType.toLowerCase() + RodaConstants.METADATA_VERSION_SEPARATOR
+      + metadataVersion;
+
+    if ((RodaCoreFactory.getConfigurationFileAsStream(
+      RodaConstants.CROSSWALKS_DISSEMINATION_HTML_PATH + lowerCaseMetadataTypeWithVersion + ".xslt")) == null) {
+      throw new TechnicalMetadataNotFoundException("Could not retrieve technical metadata stylesheet");
+    }
+
+
+    Reader reader = RodaUtils.applyMetadataStylesheet(binary, RodaConstants.CROSSWALKS_DISSEMINATION_HTML_PATH,
+      metadataType, metadataVersion, translations);
+    try {
+      return CharStreams.toString(reader);
+    } catch (IOException e) {
+      throw new GenericException("Could not transform PREMIS to HTML", e);
+    }
+  }
+
   public static String preservationMetadataEventToHtml(Binary binary, boolean onlyDetails, final Locale locale)
     throws GenericException {
 
@@ -63,7 +87,7 @@ public final class HTMLUtils {
     }
   }
 
-  public static Map<String, String> getTranslations(String descriptiveMetadataType, String descriptiveMetadataVersion,
+  public static Map<String, String>   getTranslations(String descriptiveMetadataType, String descriptiveMetadataVersion,
     final Locale locale) {
     Map<String, String> translations = null;
     Messages messages = RodaCoreFactory.getI18NMessages(locale);

@@ -14,9 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.roda.core.RodaCoreFactory;
-import org.roda.core.data.exceptions.AuthorizationDeniedException;
 import org.roda.core.data.exceptions.GenericException;
-import org.roda.core.data.exceptions.RODAException;
 import org.roda.core.data.v2.ip.Permissions;
 import org.roda.core.data.v2.user.User;
 import org.slf4j.Logger;
@@ -35,6 +33,13 @@ public class PermissionUtils {
   }
 
   public static Permissions calculatePermissions(User user, Optional<Permissions> inheritedPermissions)
+    throws GenericException {
+
+    return calculatePermissions(user, inheritedPermissions, Optional.empty());
+
+  }
+
+  public static Permissions calculatePermissions(User user, Optional<Permissions> inheritedPermissions, Optional<Permissions> otherPermissions)
     throws GenericException {
 
     Permissions finalPermissions = new Permissions();
@@ -76,11 +81,31 @@ public class PermissionUtils {
           .collect(Collectors.toSet()));
     }
 
-    // default creator Permissions
-    Set<Permissions.PermissionType> defaultCreatorPermissions = RodaCoreFactory
-      .getRodaConfigurationAsList("core.aip.default_permissions.creator.permission[]").stream()
+    // creator Permissions
+    Set<Permissions.PermissionType> userCreatorPermissions = RodaCoreFactory
+      .getRodaConfigurationAsList("core.aip.default_permissions.creator.user.permission[]").stream()
       .map(Permissions.PermissionType::valueOf) // Convert string to PermissionType enum
       .collect(Collectors.toSet());
+
+    // add default creator permissions
+    Set<Permissions.PermissionType> tempUserPermissions = finalPermissions.getUserPermissions(creatorUsername);
+    tempUserPermissions.addAll(userCreatorPermissions);
+    finalPermissions.setUserPermissions(creatorUsername, tempUserPermissions);
+
+    // default legacy behaviour
+    boolean getLegacyPermissions = RodaCoreFactory.getProperty("core.aip.default_permissions.legacy_permissions", true);
+
+    if (getLegacyPermissions) {
+      Set<Permissions.PermissionType> defaultCreatorPermissions = RodaCoreFactory
+        .getRodaConfigurationAsList("core.aip.default_permissions.creator.permission[]").stream()
+        .map(Permissions.PermissionType::valueOf) // Convert string to PermissionType enum
+        .collect(Collectors.toSet());
+
+      // add default creator permissions
+      Set<Permissions.PermissionType> temp = finalPermissions.getUserPermissions(creatorUsername);
+      temp.addAll(defaultCreatorPermissions);
+      finalPermissions.setUserPermissions(creatorUsername, temp);
+    }
 
     // defaultPermissions
     Permissions defaultPermissions = new Permissions();
@@ -112,10 +137,6 @@ public class PermissionUtils {
       finalPermissions.setUserPermissions(name, temp);
     }
 
-    // add default creator permissions
-    Set<Permissions.PermissionType> temp = finalPermissions.getUserPermissions(creatorUsername);
-    temp.addAll(defaultCreatorPermissions);
-    finalPermissions.setUserPermissions(creatorUsername, temp);
 
     // intersection
     boolean intersection = RodaCoreFactory.getProperty("core.aip.default_permissions.intersect_groups", false);
@@ -142,6 +163,23 @@ public class PermissionUtils {
       }
     }
 
+    // add otherPermissions to final permissions
+    if (otherPermissions.isPresent()) {
+      //add otherPermissions user permissions
+      for (String name : otherPermissions.get().getUsernames()) {
+        Set<Permissions.PermissionType> tempPermissions = finalPermissions.getUserPermissions(name);
+        tempPermissions.addAll(otherPermissions.get().getUserPermissions(name));
+        finalPermissions.setUserPermissions(name, tempPermissions);
+      }
+
+      //add otherPermissions user permissions
+      for (String name : otherPermissions.get().getGroupnames()) {
+        Set<Permissions.PermissionType> tempPermissions = finalPermissions.getGroupPermissions(name);
+        tempPermissions.addAll(otherPermissions.get().getGroupPermissions(name));
+        finalPermissions.setGroupPermissions(name, tempPermissions);
+      }
+    }
+
     // check if user has must have permissions to create the aip or the sublevel aip
     Set<Permissions.PermissionType> mustHavePermissions = RodaCoreFactory
       .getRodaConfigurationAsList("core.aip.default_permissions.creator.minimum.permissions[]").stream()
@@ -164,4 +202,5 @@ public class PermissionUtils {
     return finalPermissions;
 
   }
+
 }

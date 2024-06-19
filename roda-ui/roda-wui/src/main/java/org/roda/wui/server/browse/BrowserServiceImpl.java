@@ -17,10 +17,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.Set;
 
-import com.google.gwt.user.server.rpc.jakarta.RemoteServiceServlet;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.roda.core.RodaCoreFactory;
@@ -46,8 +47,8 @@ import org.roda.core.data.v2.IsRODAObject;
 import org.roda.core.data.v2.Void;
 import org.roda.core.data.v2.accessKey.AccessKey;
 import org.roda.core.data.v2.accessKey.AccessKeys;
+import org.roda.core.data.v2.common.ConversionProfile;
 import org.roda.core.data.v2.common.Pair;
-import org.roda.core.data.v2.common.UserProfile;
 import org.roda.core.data.v2.index.IndexResult;
 import org.roda.core.data.v2.index.IsIndexed;
 import org.roda.core.data.v2.index.facet.FacetFieldResult;
@@ -133,6 +134,8 @@ import org.roda.wui.servlets.ContextListener;
 import org.roda_project.commons_ip.model.RepresentationContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gwt.user.server.rpc.jakarta.RemoteServiceServlet;
 
 import it.burning.cron.CronExpressionDescriptor;
 
@@ -435,7 +438,7 @@ public class BrowserServiceImpl extends RemoteServiceServlet implements BrowserS
 
     // If the bundle has values from the form, we need to update the XML by
     // applying the values of the form to the raw template
-    if (bundle.getValues() != null) {
+    if (bundle.getValues() != null && !bundle.getValues().isEmpty()) {
       SupportedMetadataTypeBundle smtb = new SupportedMetadataTypeBundle(bundle.getId(), bundle.getType(),
         bundle.getVersion(), bundle.getId(), bundle.getRawTemplate(), bundle.getValues());
       bundle.setXml(Browser.retrieveDescriptiveMetadataPreview(user, smtb));
@@ -617,54 +620,76 @@ public class BrowserServiceImpl extends RemoteServiceServlet implements BrowserS
   }
 
   @Override
-  public Set<UserProfile> retrieveUserProfilePluginItems(String pluginId, String repOrDip, String localeString) {
-    Set<UserProfile> items = new HashSet<>();
+  public Set<ConversionProfile> retrieveConversionProfilePluginItems(String pluginId, String repOrDip,
+    String localeString) {
+    Set<ConversionProfile> items = new HashSet<>();
 
-    List<String> dropdownItems = RodaUtils
-      .copyList(RodaCoreFactory.getRodaConfiguration().getList("core.plugins.user_profile." + pluginId + "[]"));
+    String pluginName = RodaCoreFactory.getRodaConfiguration().getString("core.plugins.conversion.profile." + pluginId);
+
+    List<String> dropdownItems = RodaUtils.copyList(
+      RodaCoreFactory.getRodaConfiguration().getList("core.plugins.conversion.profile." + pluginName + ".profiles[]"));
     Locale locale = ServerTools.parseLocale(localeString);
-    Messages messages = RodaCoreFactory.getI18NMessages(locale);
 
-    String pluginName = RodaCoreFactory.getRodaConfiguration().getString("core.plugins.user_profile." + pluginId);
+    ResourceBundle pluginMessages = RodaCoreFactory.getPluginMessages(pluginId, locale);
 
     for (String item : dropdownItems) {
-      UserProfile userProfile = retrieveUserProfileItem(item, pluginName, items, messages);
-      if (repOrDip.equals(RodaConstants.PLUGIN_PARAMS_CONVERSION_REPRESENTATION) && userProfile.isRepresentation()) {
-        items.add(userProfile);
-      } else if (repOrDip.equals(RodaConstants.PLUGIN_PARAMS_CONVERSION_DISSEMINATION)
-        && userProfile.isDissemination()) {
-        items.add(userProfile);
+      ConversionProfile conversionProfile = retrieveConversionProfileItem(item, pluginName, pluginMessages);
+      if (repOrDip.equals(RodaConstants.PLUGIN_PARAMS_CONVERSION_REPRESENTATION)
+        && conversionProfile.canBeUsedForRepresentation()) {
+        items.add(conversionProfile);
+      }
+
+      if (repOrDip.equals(RodaConstants.PLUGIN_PARAMS_CONVERSION_DISSEMINATION)
+        && conversionProfile.canBeUsedForDissemination()) {
+        items.add(conversionProfile);
       }
     }
 
     return items;
   }
 
-  private UserProfile retrieveUserProfileItem(String item, String pluginName, Set<UserProfile> items,
-    Messages messages) {
-    UserProfile userProfile = new UserProfile();
+  private ConversionProfile retrieveConversionProfileItem(String item, String pluginName,
+    ResourceBundle resourceBundle) {
+    ConversionProfile conversionProfile = new ConversionProfile();
     Map<String, String> optionsValues = new HashMap<>();
 
-    userProfile.setI18nProperty(
-      RodaCoreFactory.getRodaConfiguration().getString("core.plugins." + pluginName + "." + item + ".title"));
-    userProfile.setDescription(
-      RodaCoreFactory.getRodaConfiguration().getString("core.plugins." + pluginName + "." + item + ".description"));
-    userProfile.setHasRepresentation(
-      RodaCoreFactory.getRodaConfiguration().getBoolean("core.plugins." + pluginName + "." + item + ".representation"));
-    userProfile.setHasDissemination(
-      RodaCoreFactory.getRodaConfiguration().getBoolean("core.plugins." + pluginName + "." + item + ".dissemination"));
-    userProfile.setProfile(item);
+    String i18nKey = RodaCoreFactory.getRodaConfiguration()
+      .getString("core.plugins.conversion.profile." + pluginName + ".profiles.i18nPrefix");
+
+    String title;
+    String description;
+
+    try {
+      title = resourceBundle.getString(i18nKey + "." + item + ".title");
+    } catch (MissingResourceException e) {
+      title = i18nKey + "." + item + ".title";
+    }
+
+    try {
+      description = resourceBundle.getString(i18nKey + "." + item + ".description");
+    } catch (MissingResourceException e) {
+      description = i18nKey + "." + item + ".description";
+    }
+
+    conversionProfile.setTitle(title);
+    conversionProfile.setDescription(description);
+    conversionProfile.setProfile(item);
+
+    conversionProfile.setCanBeUsedForDissemination(RodaCoreFactory.getRodaConfiguration()
+      .getBoolean("core.plugins.conversion.profile." + pluginName + "." + item + ".canBeUsedForDissemination", false));
+    conversionProfile.setCanBeUsedForRepresentation(RodaCoreFactory.getRodaConfiguration()
+      .getBoolean("core.plugins.conversion.profile." + pluginName + "." + item + ".canBeUsedForRepresentation", false));
 
     String[] options = RodaCoreFactory.getRodaConfiguration()
-      .getStringArray("core.plugins." + pluginName + "." + item + ".options[]");
+      .getStringArray("core.plugins.conversion.profile." + pluginName + "." + item + ".options[]");
     for (String option : options) {
       String optionValue = RodaCoreFactory.getRodaConfiguration()
-        .getString("core.plugins." + pluginName + "." + item + "." + option);
+        .getString("core.plugins.conversion.profile." + pluginName + "." + item + "." + option);
       optionsValues.put(option, optionValue);
     }
-    userProfile.setOptions(optionsValues);
+    conversionProfile.setOptions(optionsValues);
 
-    return userProfile;
+    return conversionProfile;
   }
 
   @Override
